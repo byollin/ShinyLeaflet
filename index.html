@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Creating Interactive GIS Applications with Shiny and Leaflet</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="  Bethany Yollin" />
+    <link href="libs/font-awesome-animation-1.0/font-awesome-animation-emi.css" rel="stylesheet" />
+    <script src="libs/fontawesome-5.0.13/js/fontawesome-all.min.js"></script>
+    <script src="libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+    <script src="libs/pymjs-1.3.2/pym.v1.js"></script>
+    <script src="libs/widgetframe-binding-0.3.1/widgetframe.js"></script>
+    <link rel="stylesheet" href="css\kunoichi.css" type="text/css" />
+    <link rel="stylesheet" href="css\ninjutsu.css" type="text/css" />
+    <link rel="stylesheet" href="css\ninpo.css" type="text/css" />
+    <link rel="stylesheet" href="css\styles.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Creating Interactive GIS Applications with Shiny and Leaflet
+### <br><br>Bethany Yollin
+### <br><br><br><br><br>Cascadia R Conference<br>June 8, 2019
+
+---
+
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # About me
+]]
+
+.column[.content[
+# 
+  * Studied Geography at the University of Washington
+  * Used R for about 8 years
+  * Currently work in a transportation planning team at an engineering firm
+  * I've lived in the Pacific Northwest for over 20 years
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # About you
+]]
+
+.column[.content.vmiddle.center[
+  <span>&lt;i class="fas  fa-question fa-10x faa-pulse animated " style=" color:#b1d65c;"&gt;&lt;/i&gt;</span>
+]]
+
+???
+
+- Who has used R?
+- Who has used Shiny?
+- TODO
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Working with GIS Data]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Shapefiles
+]]
+
+.column[.content[
+# 
+  * Originally developed by Esri
+  * Very common spatial data format
+  * Supported by commercial and open-source GIS products
+  * Supports three types of spatial data:
+    + Points
+    + Lines
+    + Polygons
+  * A shapefile is a bit of a misnomer because it's actually a collection of files including a `.shp`, `.shx`, `.prg` and `.dbf` file
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a shapefile
+
+```r
+# download and extract traffic flow data
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.zip'
+tmp = tempfile()
+download.file(url, tmp)
+unzip(tmp, exdir = tempdir())
+# read spatial data using either readOGR or st_read
+x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts', quiet = TRUE)
+class(x)
+```
+
+```
+## [1] "sf"         "data.frame"
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # GeoJSON
+]]
+
+.column[.content[
+# 
+  * A special flavor of JSON that also encodes coordinate information
+  * Natively open-source and tailored to work on the web
+  * Rather verbose, difficult to handle large datasets, generally works well for datasets less than 4MB
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a geojson file
+
+```json
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-122.387250, 47.669827]
+  },
+  "properties": {
+    "name": "Home"
+  }
+}
+```
+
+
+```r
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
+# read spatial data using either readOGR or st_read
+x = sf::st_read(url, quiet = TRUE)
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Geodatabases
+]]
+
+.column[.content[
+# 
+  * Proprietary data format designed for use in Esri software
+
+```r
+# TODO
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # RESTful APIs
+]]
+
+.column[.content[
+# 
+  * Many federal, state, regional and municipal agencies host their GIS data as **map services** exposed via a RESTful API
+  * **Map services** can be included into any web map and removes the burden of hosting and updating GIS data
+  * **Caveat**: services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
+  * Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Other formats
+]]
+
+.column[.content[
+# 
+  * KML/KMZ
+    + Less commmon XML-based spatial data format
+    + Developed by Google
+    + KML/KMZ files are capable of storing symbology information
+  * GPX
+    + Stores latitude/longitude and a timestamp
+    + Often used for working with data from GPS-enabled devices
+  * TIFF and PNG
+    + Common raster formats
+    + Well-compressed, lossless
+  * NetCDF
+    + Multi-dimensional data often with a time component
+    + Used extensively in the oceanic and atmospheric communities
+]]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Building a Leaflet Map]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Map projections
+]]
+
+.column[.content[
+# 
+  - For web mapping, the web mercator projection is standard
+  - Some data may not be in a suitable projection for web mapping (e.g., a state plane coordinate system)
+  - Use `rgdal::spTransform` or `sf::st_transform` to project coordinates from one coordinate system to another
+
+```r
+x = sf::st_transform(x, 4326)
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Basemaps
+]]
+
+.column[
+- You can preview a pre-packaged list of basemap providers here: http://leaflet-extras.github.io/leaflet-providers/preview/index.html
+- To add any of the pre-packaged basemaps, use `addProviderTiles` function, see `providers` for a list of over 100 different basemaps
+- The `urlTemplate` parameter of the `addTiles` function can be used to provide a custom basemap
+- Some basemaps require an API key, but there are **many** free basemaps available
+- Mapbox Studio provides free online tools to create and host custom basemaps: https://www.mapbox.com/mapbox-studio/
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Basemaps
+]]
+
+.column[
+
+```r
+leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
+    addProviderTiles(providers$CartoDB.DarkMatter) %&gt;% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+```
+
+<div id="htmlwidget-194becb656bd65b0a81a" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-194becb656bd65b0a81a">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-7.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+
+
+```r
+leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
+    addProviderTiles(providers$CartoDB.Positron) %&gt;% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+```
+
+<div id="htmlwidget-03c3431fafc64e10ab74" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-03c3431fafc64e10ab74">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-9.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+]
+
+---
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Points
+]]
+
+.column[
+# 
+  - Use `clusterOptions` to cluster points, especially useful for dense points
+
+```r
+points = sf::st_read('data/collisions.shp')
+leaflet() %&gt;%
+  addProviderTiles(providers$CartoDB.Positron) %&gt;% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 15) %&gt;% 
+  addCircleMarkers(data = points, fillColor = 'red', fillOpacity = 0.6, stroke = FALSE,
+                   radius = 4, clusterOptions = markerClusterOptions())
+```
+
+<div id="htmlwidget-49be0ec338440cbb7351" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-49be0ec338440cbb7351">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-11.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+]
+
+---
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Points
+]]
+
+.column[
+# 
+  - The `leaflet.extras` package provides additional visualization options such as `addHeatmap`
+
+```r
+points = sf::st_read('data/collisions.shp')
+leaflet() %&gt;%
+  addProviderTiles(providers$CartoDB.Positron) %&gt;% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %&gt;% 
+  addHeatmap(blur = 20, max = 0.05, radius = 12)
+```
+
+<div id="htmlwidget-08ed557a4f10556b3209" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-08ed557a4f10556b3209">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-13.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Polylines
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Polygons
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Highlighting
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Labels
+]]
+
+.column[
+- TODO
+]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Building a Shiny/Leaflet Application]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # UI
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Server
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # leafletProxy
+]]
+
+.column[
+- TODO
+]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Deploying a Shiny Application]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # shinyapps.io
+]]
+
+.column[.content[
+# 
+  - Free
+  - One-click deployment from RStudio
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Shiny server
+]]
+
+.column[.content[
+  &lt;br&gt;&lt;br&gt;
+  - Requires a moderate amount of systems administration expereince (i.e., setting up, securing and maintaining web servers)
+  - Both an "open-source" and "pro" tier
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Docker + GCP / Docker + Azure
+]]
+
+.column[.content[
+# 
+  * Requires a moderate amount of systems administration expereince
+  * As long as Docker is installed, a Docker container can run on a machine in a matter of seconds
+]]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Live Demo]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Isolines
+]]
+
+.column[
+# 
+  * Developed for RStudio's Shiny Competition
+  * Won honorable mention
+  * Deployed on shinyapps.io: https://byollin.shinyapps.io/Isolines/
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

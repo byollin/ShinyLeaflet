@@ -1,0 +1,532 @@
+---
+title: "Creating Interactive GIS Applications with Shiny and Leaflet"
+subtitle: ""
+author: "<br><br>Bethany Yollin"
+date: "<br><br><br><br><br>Cascadia R Conference<br>June 8, 2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["css/kunoichi.css", "css/ninjutsu.css", "css/ninpo.css", "css/styles.css"]
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # About me
+]]
+
+.column[.content[
+# 
+  * Studied Geography at the University of Washington
+  * Used R for about 8 years
+  * Currently work in a transportation planning team at an engineering firm
+  * I've lived in the Pacific Northwest for over 20 years
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # About you
+]]
+
+.column[.content.vmiddle.center[
+  `r anicon::faa('question', animate = 'pulse', size = 10, color = '#b1d65c')`
+]]
+
+???
+
+- Who has used R?
+- Who has used Shiny?
+- TODO
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Working with GIS Data]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Shapefiles
+]]
+
+.column[.content[
+# 
+  * Originally developed by Esri
+  * Very common spatial data format
+  * Supported by commercial and open-source GIS products
+  * Supports three types of spatial data:
+    + Points
+    + Lines
+    + Polygons
+  * A shapefile is a bit of a misnomer because it's actually a collection of files including a `.shp`, `.shx`, `.prg` and `.dbf` file
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a shapefile
+```{r, echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE}
+# download and extract traffic flow data
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.zip'
+tmp = tempfile()
+download.file(url, tmp)
+unzip(tmp, exdir = tempdir())
+# read spatial data using either readOGR or st_read
+x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts', quiet = TRUE)
+class(x)
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # GeoJSON
+]]
+
+.column[.content[
+# 
+  * A special flavor of JSON that also encodes coordinate information
+  * Natively open-source and tailored to work on the web
+  * Rather verbose, difficult to handle large datasets, generally works well for datasets less than 4MB
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a geojson file
+```{json}
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-122.387250, 47.669827]
+  },
+  "properties": {
+    "name": "Home"
+  }
+}
+```
+
+```{r, echo = TRUE, eval = FALSE}
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
+# read spatial data using either readOGR or st_read
+x = sf::st_read(url, quiet = TRUE)
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Geodatabases
+]]
+
+.column[.content[
+# 
+  * Proprietary data format designed for use in Esri software
+```{r, echo = TRUE, eval = FALSE}
+# TODO
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # RESTful APIs
+]]
+
+.column[.content[
+# 
+  * Many federal, state, regional and municipal agencies host their GIS data as **map services** exposed via a RESTful API
+  * **Map services** can be included into any web map and removes the burden of hosting and updating GIS data
+  * **Caveat**: services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
+  * Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Other formats
+]]
+
+.column[.content[
+# 
+  * KML/KMZ
+    + Less commmon XML-based spatial data format
+    + Developed by Google
+    + KML/KMZ files are capable of storing symbology information
+  * GPX
+    + Stores latitude/longitude and a timestamp
+    + Often used for working with data from GPS-enabled devices
+  * TIFF and PNG
+    + Common raster formats
+    + Well-compressed, lossless
+  * NetCDF
+    + Multi-dimensional data often with a time component
+    + Used extensively in the oceanic and atmospheric communities
+]]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Building a Leaflet Map]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Map projections
+]]
+
+.column[.content[
+# 
+  - For web mapping, the web mercator projection is standard
+  - Some data may not be in a suitable projection for web mapping (e.g., a state plane coordinate system)
+  - Use `rgdal::spTransform` or `sf::st_transform` to project coordinates from one coordinate system to another
+```{r, echo = TRUE, eval = FALSE}
+x = sf::st_transform(x, 4326)
+```
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Basemaps
+]]
+
+.column[
+- You can preview a pre-packaged list of basemap providers here: http://leaflet-extras.github.io/leaflet-providers/preview/index.html
+- To add any of the pre-packaged basemaps, use `addProviderTiles` function, see `providers` for a list of over 100 different basemaps
+- The `urlTemplate` parameter of the `addTiles` function can be used to provide a custom basemap
+- Some basemaps require an API key, but there are **many** free basemaps available
+- Mapbox Studio provides free online tools to create and host custom basemaps: https://www.mapbox.com/mapbox-studio/
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Basemaps
+]]
+
+.column[
+```{r, echo = TRUE, eval = FALSE}
+leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+    addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+```
+
+```{r, echo = FALSE}
+library(leaflet.esri, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+l = leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+    addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+frameWidget(l, height = 200)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+    addProviderTiles(providers$CartoDB.Positron) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+```
+
+```{r, echo = FALSE}
+library(leaflet.esri, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+l = leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+    addProviderTiles(providers$CartoDB.Positron) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+frameWidget(l, height = 200)
+```
+]
+
+---
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Points
+]]
+
+.column[
+# 
+  - Use `clusterOptions` to cluster points, especially useful for dense points
+```{r, echo = TRUE, eval = FALSE}
+points = sf::st_read('data/collisions.shp')
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
+  addCircleMarkers(data = points, fillColor = 'red', fillOpacity = 0.6, stroke = FALSE,
+                   radius = 4, clusterOptions = markerClusterOptions())
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(leaflet, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+points = sf::st_read('data/collisions.shp', quiet = TRUE)
+l = leaflet() %>%
+    addProviderTiles(providers$CartoDB.Positron) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
+    addCircleMarkers(data = points, fillColor = 'red', fillOpacity = 0.6, stroke = FALSE,
+                     radius = 4, clusterOptions = markerClusterOptions())
+frameWidget(l, height = 350)
+```
+]
+
+---
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Points
+]]
+
+.column[
+# 
+  - The `leaflet.extras` package provides additional visualization options such as `addHeatmap`
+```{r, echo = TRUE, eval = FALSE}
+points = sf::st_read('data/collisions.shp')
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>% 
+  addHeatmap(blur = 20, max = 0.05, radius = 12)
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(leaflet, quietly = TRUE)
+library(leaflet.extras, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+points = sf::st_read('data/collisions.shp', quiet = TRUE)
+l = leaflet() %>%
+    addProviderTiles(providers$CartoDB.Positron) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>% 
+    addHeatmap(lng = sapply(points$geometry, function(x) {x[1]})[!is.nan(sapply(points$geometry, function(x) {x[1]}))],
+               lat = sapply(points$geometry, function(x) {x[2]})[!is.nan(sapply(points$geometry, function(x) {x[2]}))],
+               blur = 20, max = 0.05, radius = 12)
+frameWidget(l, height = 350)
+```
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Polylines
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Polygons
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Highlighting
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Labels
+]]
+
+.column[
+- TODO
+]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Building a Shiny/Leaflet Application]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # UI
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Server
+]]
+
+.column[
+- TODO
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # leafletProxy
+]]
+
+.column[
+- TODO
+]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Deploying a Shiny Application]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # shinyapps.io
+]]
+
+.column[.content[
+# 
+  - Free
+  - One-click deployment from RStudio
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Shiny server
+]]
+
+.column[.content[
+  <br><br>
+  - Requires a moderate amount of systems administration expereince (i.e., setting up, securing and maintaining web servers)
+  - Both an "open-source" and "pro" tier
+]]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Docker + GCP / Docker + Azure
+]]
+
+.column[.content[
+# 
+  * Requires a moderate amount of systems administration expereince
+  * As long as Docker is installed, a Docker container can run on a machine in a matter of seconds
+]]
+
+---
+
+class: split-70 hide-slide-number
+background-image: url('images/plants.jpg')
+background-size: cover
+
+.column.slide-in-left[
+.sliderbox.vmiddle.shade_main.center.content[
+  # Live Demo]]
+.column[
+]
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Isolines
+]]
+
+.column[
+# 
+  * Developed for RStudio's Shiny Competition
+  * Won honorable mention
+  * Deployed on shinyapps.io: https://byollin.shinyapps.io/Isolines/
+]

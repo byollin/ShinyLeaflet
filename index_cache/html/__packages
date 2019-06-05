@@ -1,7 +1,6 @@
 base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
+leaflet
+leaflet.extras
+leaflet.esri
+htmlwidgets
+widgetframe

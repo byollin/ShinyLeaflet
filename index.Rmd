@@ -23,10 +23,11 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
+  * Currently working as a data scientist in a transportation planning team at an engineering firm
   * Studied Geography at the University of Washington
   * Used R for about 8 years
-  * Currently work in a transportation planning team at an engineering firm
-  * I've lived in the Pacific Northwest for over 20 years
+  * Lived in the Pacific Northwest for over 20 years
+  * I love making web maps!
 ]]
 
 ---
@@ -51,7 +52,7 @@ class: split-33 with-thick-border
 ---
 
 class: split-70 hide-slide-number
-background-image: url('images/plants.jpg')
+background-image: url('images/leaves.jpg')
 background-size: cover
 
 .column.slide-in-left[
@@ -190,7 +191,7 @@ class: split-33 with-thick-border
 ---
 
 class: split-70 hide-slide-number
-background-image: url('images/plants.jpg')
+background-image: url('images/leaves.jpg')
 background-size: cover
 
 .column.slide-in-left[
@@ -286,28 +287,35 @@ class: split-33 with-thick-border
 
 .column[
 # 
-  - Use `clusterOptions` to cluster points, especially useful for dense points
+  - Use `addCircleMarkers` or `addMarkers` to display point data
+  - Use `clusterOptions` parameter to cluster points, especially useful for dense points
 ```{r, echo = TRUE, eval = FALSE}
-points = sf::st_read('data/collisions.shp')
+points = sf::st_read('data/collisions.shp') # collisions jan 2019 - apr 2019
 leaflet() %>%
   addProviderTiles(providers$CartoDB.Positron) %>% 
-  setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 14) %>% 
   addCircleMarkers(data = points, fillColor = 'red', fillOpacity = 0.6, stroke = FALSE,
                    radius = 4, clusterOptions = markerClusterOptions())
 ```
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
 library(leaflet, quietly = TRUE)
 library(widgetframe, quietly = TRUE)
-points = sf::st_read('data/collisions.shp', quiet = TRUE)
+points = sf::st_read('data/collisions.shp', quiet = TRUE) # collisions jan 2019 - apr 2019
 l = leaflet() %>%
     addProviderTiles(providers$CartoDB.Positron) %>% 
-    setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
+    setView(lng = -122.330412, lat = 47.609056, zoom = 14) %>% 
     addCircleMarkers(data = points, fillColor = 'red', fillOpacity = 0.6, stroke = FALSE,
                      radius = 4, clusterOptions = markerClusterOptions())
-frameWidget(l, height = 350)
+frameWidget(l, height = 300)
 ```
 ]
+
+???
+- The data is collisions that occured between January 2019 and April 2019
+- Data is made available from SDOT
+- There's about 3,000 observations in this dataset
+- For such a dense concentration of points, we can use `clusterOptions` to cluster the points
 
 ---
 layout: false
@@ -321,30 +329,77 @@ class: split-33 with-thick-border
 # 
   - The `leaflet.extras` package provides additional visualization options such as `addHeatmap`
 ```{r, echo = TRUE, eval = FALSE}
-points = sf::st_read('data/collisions.shp')
+points = sf::st_read('data/collisions.shp') # collisions jan 2019 - apr 2019
 leaflet() %>%
   addProviderTiles(providers$CartoDB.Positron) %>% 
   setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>% 
-  addHeatmap(blur = 20, max = 0.05, radius = 12)
+  leaflet.extras::addHeatmap(data = points, blur = 20, max = 0.05, radius = 12)
 ```
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
 library(leaflet, quietly = TRUE)
-library(leaflet.extras, quietly = TRUE)
 library(widgetframe, quietly = TRUE)
-points = sf::st_read('data/collisions.shp', quiet = TRUE)
+points = sf::st_read('data/collisions.shp', quiet = TRUE) # collisions jan 2019 - apr 2019
 l = leaflet() %>%
-    addProviderTiles(providers$CartoDB.Positron) %>% 
-    setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>% 
-    addHeatmap(lng = sapply(points$geometry, function(x) {x[1]})[!is.nan(sapply(points$geometry, function(x) {x[1]}))],
-               lat = sapply(points$geometry, function(x) {x[2]})[!is.nan(sapply(points$geometry, function(x) {x[2]}))],
-               blur = 20, max = 0.05, radius = 12)
+      addProviderTiles(providers$CartoDB.Positron) %>% 
+      setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>% 
+      leaflet.extras::addHeatmap(data = points, blur = 20, max = 0.05, radius = 12)
 frameWidget(l, height = 350)
 ```
 ]
 
----
+???
+- We can create a heatmap as an alternative way to display dense points
 
+---
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Points
+]]
+
+.column[
+# 
+  - The `radius` parameter controls the size of points
+  - Use `cut` to convert numeric ranges into sensible breaks for mapping
+  - The `colorNumeric`, `colorBin`, `colorQuantile` and `colorFactor` functions are convenient for creating sensible color scales
+```{r, echo = TRUE, eval = FALSE}
+load('data/cdc500cities.Rdata') # cdc 500 cities data (pre-cleaned)
+my_breaks = function(x) { cut(x, breaks = c(0, 5e4, 1e5, 2.5e5, 5e5, 1e6, 5e6, 1e7),
+                              labels = c(1, 2, 3, 4, 6, 8, 10)) }
+bin_pal = colorBin('YlOrRd', cdc$OBESITY_AdjPrev)
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  setView(lng = -96.387409, lat = 37.971680, zoom = 4) %>% 
+  addCircleMarkers(data = cdc, radius = ~my_breaks(Population2010), weight = 1,
+                   stroke = FALSE, fillColor = ~bin_pal(OBESITY_AdjPrev), fillOpacity = 0.6)
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+library(leaflet, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+load('data/cdc500cities.Rdata') # cdc 500 cities data (pre-cleaned)
+my_breaks = function(x) { cut(x, breaks = c(0, 5e4, 1e5, 2.5e5, 5e5, 1e6, 5e6, 1e7),
+                              labels = c(1, 2, 3, 4, 6, 8, 10)) }
+bin_pal = colorBin('YlOrRd', cdc$OBESITY_AdjPrev)
+l =leaflet() %>%
+    addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+    setView(lng = -96.387409, lat = 37.971680, zoom = 4) %>%
+    addCircleMarkers(data = cdc, radius = ~my_breaks(Population2010),
+                     stroke = FALSE, fillColor = ~bin_pal(OBESITY_AdjPrev), fillOpacity = 0.6)
+frameWidget(l, height = 200)
+```
+]
+
+???
+- This data is from CDC's 500 Cities studies looking at health outcomes for 500 U.S. cities
+- The data is symbolized by two different variables, population and obesity prevalance
+- We can use the `cut` function to make sensible breaks for the circle radii
+- Good breaks for the circle radii takes some experimentation
+- The `colorNumeric`, `colorBin`, `colorQuantile` and `colorFactor` functions are convenient for generating sensible color scales
+
+---
 layout: false
 class: split-33 with-thick-border
 
@@ -353,8 +408,37 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  * Use `addPolylines` to add line features to a leaflet map
+  * The `weight` parameter controls the width of the polyline
+```{r, echo = TRUE, eval = FALSE}
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
+x = sf::st_read(url)
+my_breaks = function(x) { cut(x, breaks = c(0, 1e4, 2.5e4, 5e4, 7.5e4, 1e5, 1.25e5),
+                              labels = c(1, 2, 4, 8, 12, 16)) }
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+  addPolylines(data = x, weight = ~my_breaks(AWDT_ROUND), color = 'orange', opacity = 1)
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
+x = sf::st_read(url, quiet = TRUE)
+my_breaks = function(x) { cut(x, breaks = c(0, 1e4, 2.5e4, 5e4, 7.5e4, 1e5, 1.25e5),
+                              labels = c(1, 2, 4, 8, 12, 16)) }
+l = leaflet() %>%
+      addProviderTiles(providers$CartoDB.DarkMatter) %>% 
+      setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+      addPolylines(data = x, weight = ~my_breaks(AWDT_ROUND), color = 'orange', opacity = 1)
+frameWidget(l, height = 300)
+```
 ]
+
+???
+- This data is 2016 traffic flow counts from SDOT
+- The data is downloaded in GeoJSON format and read into a `sf` object
+- Once again, we can use the `cut` function to make sensible breaks for the line widths
 
 ---
 
@@ -366,7 +450,29 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  - Use `addPolygons` to add polygon features to a leaflet map
+  - Choropleth maps can easily be created by adjusting the `fillColor` parameter and generating a color palette with `colorNumeric`, `colorBin`, `colorQuantile` or `colorFactor`
+```{r, echo = TRUE, eval = FALSE}
+polygons = sf::st_read('data/commute.shp') # commute mode from 2017 acs
+bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+  addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+              color = 'grey', weight = 0.4, fillOpacity = 0.5)
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+polygons = sf::st_read('data/commute.shp', quiet = TRUE) # commute mode from 2017 acs
+bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
+l = leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>% 
+      setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+      addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+                  color = 'grey', weight = 0.4, fillOpacity = 0.5)
+frameWidget(l, height = 250)
+```
 ]
 
 ---
@@ -379,7 +485,31 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  - The `highlightOptions` parameter can be used to define mouseover behavior
+```{r, echo = TRUE, eval = FALSE}
+```{r, echo = TRUE, eval = FALSE}
+polygons = sf::st_read('data/commute.shp') # commute mode from 2017 acs
+bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+  addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+              color = 'grey', weight = 0.4, fillOpacity = 0.5,
+              highlightOptions = highlightOptions(weight = 2, color = 'black'))
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+polygons = sf::st_read('data/commute.shp', quiet = TRUE) # commute mode from 2017 acs
+bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
+l = leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>% 
+      setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+      addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+                  color = 'grey', weight = 0.4, fillOpacity = 0.5,
+                  highlightOptions = highlightOptions(weight = 2, color = 'black'))
+frameWidget(l, height = 300)
+```
 ]
 
 ---
@@ -388,7 +518,7 @@ layout: false
 class: split-33 with-thick-border
 
 .column.bg-main1[.content[
-  # Labels
+  # Labels and popups
 ]]
 
 .column[
@@ -398,7 +528,7 @@ class: split-33 with-thick-border
 ---
 
 class: split-70 hide-slide-number
-background-image: url('images/plants.jpg')
+background-image: url('images/leaves.jpg')
 background-size: cover
 
 .column.slide-in-left[
@@ -449,7 +579,7 @@ class: split-33 with-thick-border
 ---
 
 class: split-70 hide-slide-number
-background-image: url('images/plants.jpg')
+background-image: url('images/leaves.jpg')
 background-size: cover
 
 .column.slide-in-left[
@@ -506,7 +636,7 @@ class: split-33 with-thick-border
 ---
 
 class: split-70 hide-slide-number
-background-image: url('images/plants.jpg')
+background-image: url('images/leaves.jpg')
 background-size: cover
 
 .column.slide-in-left[

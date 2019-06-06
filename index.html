@@ -4,11 +4,11 @@
     <title>Creating Interactive GIS Applications with Shiny and Leaflet</title>
     <meta charset="utf-8" />
     <meta name="author" content="  Bethany Yollin" />
-    <link href="libs/font-awesome-animation-1.0/font-awesome-animation-emi.css" rel="stylesheet" />
-    <script src="libs/fontawesome-5.0.13/js/fontawesome-all.min.js"></script>
     <script src="libs/htmlwidgets-1.3/htmlwidgets.js"></script>
     <script src="libs/pymjs-1.3.2/pym.v1.js"></script>
     <script src="libs/widgetframe-binding-0.3.1/widgetframe.js"></script>
+    <link href="libs/font-awesome-animation-1.0/font-awesome-animation-emi.css" rel="stylesheet" />
+    <script src="libs/fontawesome-5.0.13/js/fontawesome-all.min.js"></script>
     <link rel="stylesheet" href="css\kunoichi.css" type="text/css" />
     <link rel="stylesheet" href="css\ninjutsu.css" type="text/css" />
     <link rel="stylesheet" href="css\ninpo.css" type="text/css" />
@@ -25,43 +25,6 @@ class: center, middle, inverse, title-slide
 ---
 
 
-layout: false
-class: split-33 with-thick-border
-
-.column.bg-main1[.content[
-  # About me
-]]
-
-.column[.content[
-# 
-  * Currently working as a data scientist in a transportation planning team at an engineering firm
-  * Studied Geography at the University of Washington
-  * Used R for about 8 years
-  * Lived in the Pacific Northwest for over 20 years
-  * I love making web maps!
-]]
-
----
-
-layout: false
-class: split-33 with-thick-border
-
-.column.bg-main1[.content[
-  # About you
-]]
-
-.column[.content.vmiddle.center[
-  <span>&lt;i class="fas  fa-question fa-10x faa-pulse animated " style=" color:#b1d65c;"&gt;&lt;/i&gt;</span>
-]]
-
-???
-
-- Who has used R?
-- Who has used Shiny?
-- TODO
-
----
-
 class: split-70 hide-slide-number
 background-image: url('images/leaves.jpg')
 background-size: cover
@@ -71,6 +34,8 @@ background-size: cover
   # Working with GIS Data]]
 .column[
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -83,8 +48,8 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
-  * Originally developed by Esri
   * Very common spatial data format
+  * Originally developed by Esri
   * Supported by commercial and open-source GIS products
   * Supports three types of spatial data:
     + Points
@@ -101,13 +66,10 @@ download.file(url, tmp)
 unzip(tmp, exdir = tempdir())
 # read spatial data using either readOGR or st_read
 x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts', quiet = TRUE)
-class(x)
-```
-
-```
-## [1] "sf"         "data.frame"
 ```
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -146,23 +108,7 @@ x = sf::st_read(url, quiet = TRUE)
 ```
 ]]
 
----
-
-layout: false
-class: split-33 with-thick-border
-
-.column.bg-main1[.content[
-  # Geodatabases
-]]
-
-.column[.content[
-# 
-  * Proprietary data format designed for use in Esri software
-
-```r
-# TODO
-```
-]]
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -170,16 +116,19 @@ layout: false
 class: split-33 with-thick-border
 
 .column.bg-main1[.content[
-  # RESTful APIs
+  # Map services
 ]]
 
 .column[.content[
 # 
-  * Many federal, state, regional and municipal agencies host their GIS data as **map services** exposed via a RESTful API
-  * **Map services** can be included into any web map and removes the burden of hosting and updating GIS data
-  * **Caveat**: services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
+  * Many federal, state, regional and municipal agencies host their GIS data as map services exposed via a RESTful API
+  * Map services can be included into any web map and removes the burden of hosting and updating GIS data
+  * Map services support point, polyline, polygon and raster features
+  * Services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
   * Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -192,6 +141,9 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
+  * Geodatabase (.gdb)
+    + Quite common
+    + Proprietary spatial data format by Esri
   * KML/KMZ
     + Less commmon XML-based spatial data format
     + Developed by Google
@@ -207,6 +159,8 @@ class: split-33 with-thick-border
     + Used extensively in the oceanic and atmospheric communities
 ]]
 
+&lt;!-- BUILDING A LEAFLET MAP ---------------------------------------------------------------------------------------- --&gt;
+
 ---
 
 class: split-70 hide-slide-number
@@ -219,6 +173,8 @@ background-size: cover
 .column[
 ]
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
 
 layout: false
@@ -230,7 +186,7 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
-  - For web mapping, the web mercator projection is standard
+  - For web mapping, the web mercator projection (EPSG: 4326) is standard
   - Some data may not be in a suitable projection for web mapping (e.g., a state plane coordinate system)
   - Use `rgdal::spTransform` or `sf::st_transform` to project coordinates from one coordinate system to another
 
@@ -238,6 +194,58 @@ class: split-33 with-thick-border
 x = sf::st_transform(x, 4326)
 ```
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # The leaflet widget
+]]
+
+.column[.content[
+# 
+  * Creating a leaflet map is really simple!
+
+```r
+library(leaflet)
+leaflet()
+```
+
+<div id="htmlwidget-a2e19881c81b0764734e" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a2e19881c81b0764734e">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # The leaflet widget
+]]
+
+.column[.content[
+# 
+  * Creating a leaflet map is really simple!
+
+```r
+library(leaflet)
+leaflet()
+```
+
+<div id="htmlwidget-f80a83d95b3ce0655c9a" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f80a83d95b3ce0655c9a">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+
+ * Okay... so maybe it's not that simple
+]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -249,12 +257,21 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- You can preview a pre-packaged list of basemap providers here: http://leaflet-extras.github.io/leaflet-providers/preview/index.html
-- To add any of the pre-packaged basemaps, use `addProviderTiles` function, see `providers` for a list of over 100 different basemaps
-- The `urlTemplate` parameter of the `addTiles` function can be used to provide a custom basemap
-- Some basemaps require an API key, but there are **many** free basemaps available
-- Mapbox Studio provides free online tools to create and host custom basemaps: https://www.mapbox.com/mapbox-studio/
+- A simple OSM basemap can be added with the `addTiles` function
+- Use `setView` to set the initial extents of the map
+- To add a pre-package basemap, use the `addProviderTiles` function, see [`providers`](http://leaflet-extras.github.io/leaflet-providers/preview/index.html) for dozens of different basemaps
+- Custom basemaps can be added using the `urlTemplate` parameter of the `addTiles` function
+
+```r
+leaflet() %&gt;% addTiles() %&gt;% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 15)
+```
+
+<div id="htmlwidget-d2d8aed886aab1457f36" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d2d8aed886aab1457f36">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-10.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -273,8 +290,8 @@ leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
     setView(lng = -122.330412, lat = 47.609056, zoom = 15)
 ```
 
-<div id="htmlwidget-194becb656bd65b0a81a" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-194becb656bd65b0a81a">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-7.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-2b91ea4b88f911406a31" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2b91ea4b88f911406a31">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-12.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 
 
 ```r
@@ -283,11 +300,14 @@ leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
     setView(lng = -122.330412, lat = 47.609056, zoom = 15)
 ```
 
-<div id="htmlwidget-03c3431fafc64e10ab74" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-03c3431fafc64e10ab74">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-9.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-8ae8cc1ae7c1c63608ee" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8ae8cc1ae7c1c63608ee">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-14.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
+
 layout: false
 class: split-33 with-thick-border
 
@@ -309,8 +329,8 @@ leaflet() %&gt;%
                    radius = 4, clusterOptions = markerClusterOptions())
 ```
 
-<div id="htmlwidget-49be0ec338440cbb7351" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-49be0ec338440cbb7351">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-11.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-387e5a449a2cf4cd9140" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-387e5a449a2cf4cd9140">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-16.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -319,7 +339,10 @@ leaflet() %&gt;%
 - There's about 3,000 observations in this dataset
 - For such a dense concentration of points, we can use `clusterOptions` to cluster the points
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
+
 layout: false
 class: split-33 with-thick-border
 
@@ -332,21 +355,23 @@ class: split-33 with-thick-border
   - The `leaflet.extras` package provides additional visualization options such as `addHeatmap`
 
 ```r
-points = sf::st_read('data/collisions.shp') # collisions jan 2019 - apr 2019
 leaflet() %&gt;%
   addProviderTiles(providers$CartoDB.Positron) %&gt;% 
-  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %&gt;% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 14) %&gt;% 
   leaflet.extras::addHeatmap(data = points, blur = 20, max = 0.05, radius = 12)
 ```
 
-<div id="htmlwidget-08ed557a4f10556b3209" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-08ed557a4f10556b3209">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-13.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-ad35dc2fe272a6f2ac42" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ad35dc2fe272a6f2ac42">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-18.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
 - We can create a heatmap as an alternative way to display dense points
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
+
 layout: false
 class: split-33 with-thick-border
 
@@ -372,8 +397,8 @@ leaflet() %&gt;%
                    stroke = FALSE, fillColor = ~bin_pal(OBESITY_AdjPrev), fillOpacity = 0.6)
 ```
 
-<div id="htmlwidget-ccbb0cc61b6b7abbf098" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ccbb0cc61b6b7abbf098">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-15.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-e4f6e3d051d8a9c52703" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e4f6e3d051d8a9c52703">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-20.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -383,7 +408,10 @@ leaflet() %&gt;%
 - Good breaks for the circle radii takes some experimentation
 - The `colorNumeric`, `colorBin`, `colorQuantile` and `colorFactor` functions are convenient for generating sensible color scales
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
+
 layout: false
 class: split-33 with-thick-border
 
@@ -397,8 +425,7 @@ class: split-33 with-thick-border
   * The `weight` parameter controls the width of the polyline
 
 ```r
-url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
-x = sf::st_read(url)
+x = sf::st_read('data/2016_Traffic_Flow_Counts.shp')
 my_breaks = function(x) { cut(x, breaks = c(0, 1e4, 2.5e4, 5e4, 7.5e4, 1e5, 1.25e5),
                               labels = c(1, 2, 4, 8, 12, 16)) }
 leaflet() %&gt;%
@@ -407,14 +434,16 @@ leaflet() %&gt;%
   addPolylines(data = x, weight = ~my_breaks(AWDT_ROUND), color = 'orange', opacity = 1)
 ```
 
-<div id="htmlwidget-aaf53e0b47194f676003" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-aaf53e0b47194f676003">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-17.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-da45e0511c1c2c865fc5" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-da45e0511c1c2c865fc5">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-22.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
 - This data is 2016 traffic flow counts from SDOT
 - The data is downloaded in GeoJSON format and read into a `sf` object
 - Once again, we can use the `cut` function to make sensible breaks for the line widths
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -440,9 +469,11 @@ leaflet() %&gt;%
               color = 'grey', weight = 0.4, fillOpacity = 0.5)
 ```
 
-<div id="htmlwidget-901679eed93e3a6a1667" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-901679eed93e3a6a1667">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-19.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4d9123c8dc03147db287" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4d9123c8dc03147db287">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-24.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -457,10 +488,7 @@ class: split-33 with-thick-border
 # 
   - The `highlightOptions` parameter can be used to define mouseover behavior
 
-
 ```r
-polygons = sf::st_read('data/commute.shp') # commute mode from 2017 acs
-bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
 leaflet() %&gt;%
   addProviderTiles(providers$CartoDB.Positron) %&gt;% 
   setView(lng = -122.330412, lat = 47.609056, zoom = 11) %&gt;%  
@@ -469,9 +497,11 @@ leaflet() %&gt;%
               highlightOptions = highlightOptions(weight = 2, color = 'black'))
 ```
 
-<div id="htmlwidget-9dd83cc7aa73d73c2952" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9dd83cc7aa73d73c2952">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-22.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-5294fc7e78e39bf67c55" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5294fc7e78e39bf67c55">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-26.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -483,8 +513,26 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  * Labels and popups can be triggered by mousing over a feature or clicking on a feature
+
+```r
+labels = sprintf("&lt;strong&gt;Drive Alone Rate&lt;/strong&gt;&lt;br/&gt;%.1f%%",
+                 polygons$DRIVE_ALON / polygons$TOTAL_POP * 100) %&gt;% lapply(htmltools::HTML)
+leaflet() %&gt;%
+  addProviderTiles(providers$CartoDB.Positron) %&gt;% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %&gt;%  
+  addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+              color = 'grey', weight = 0.4, fillOpacity = 0.5,
+              highlightOptions = highlightOptions(weight = 2, color = 'black'),
+              label = labels)
+```
+
+<div id="htmlwidget-cd0dacbcaa78a658cb06" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-cd0dacbcaa78a658cb06">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-28.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -498,6 +546,31 @@ background-size: cover
 .column[
 ]
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Shiny
+]]
+
+.column[
+# 
+  * Shiny is a web application framework that enables R developers to share their analyses and visualizations on the web
+  * A shiny application consists of two parts:
+      + the user interface or UI (HTML/CSS)
+      + the server logic (R/JavaScript)
+  * Shiny implements a reactive programming paradigm:
+      1. Observing **input** from the user
+      2. Performing **computations** based on these inputs
+      3. Displaying **outputs** based on these computations
+]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
 
 layout: false
@@ -508,8 +581,27 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  * The UI defines the user interface
+  * Custom CSS can be used to dramatically change the aesthetics of a Shiny application
+  * The `leafletOutput` function is used to create a UI element that will contain a leaflet map generated by the server
+
+```r
+ui = navbarPage(title = 'Police Reports | Past 24 Hours', windowTitle = 'Police Reports',
+                selected = 'Interactive Map', theme = shinytheme('yeti'),
+                # some extra CSS
+                tags$head(tags$link(rel = 'stylesheet', type = 'text/css',
+                                    href = 'custom.css')),
+                tabPanel(title = 'Interactive Map',
+                    div(class = 'outer',
+                        leafletOutput('map', width = '100%', height = '100%')
+                    )
+                )
+)
+```
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -521,8 +613,30 @@ class: split-33 with-thick-border
 ]]
 
 .column[
-- TODO
+# 
+  * The server defines behavior that is tied to input elements in the UI
+  * Use `renderLeaflet` to include a leaflet map in a Shiny application
+  * The `addEsriFeatureLayer` from the `leaflet.esri` package enables the use of map services in a leaflet map
+  * Using a published map service removes the burden of hosting, maintaining and loading GIS data
+  * The map service used in this example lives [here](https://gisrevprxy.seattle.gov/arcgis/rest/services/SPD_EXT/911IncidentResponses/MapServer/0)
+
+```r
+server = function(input, output) {
+    popup_js = JS(read_file('popup.js'))
+    output$map = renderLeaflet({
+        leaflet(options = leafletOptions(minZoom = 4, maxZoom = 18, zoomControl = FALSE)) %&gt;%
+            addProviderTiles(providers$CartoDB.Positron) %&gt;%
+            setView(lng = -122.330412, lat = 47.609056, zoom = 15) %&gt;% 
+            addEsriFeatureLayer(map_service_url, markerIcons = icons,
+                                markerIconProperty = 'mapcategory',
+                                popupProperty = popup_js) %&gt;% 
+            addControl(html = html_legend, position = 'bottomleft')
+    })
+}
+```
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -530,12 +644,31 @@ layout: false
 class: split-33 with-thick-border
 
 .column.bg-main1[.content[
-  # leafletProxy
+  # Live demo
 ]]
 
 .column[
-- TODO
+&lt;iframe src="https://byollin.shinyapps.io/PoliceReports/" height=98% width=100%&gt;&lt;/iframe&gt;
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
+---
+
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Live demo
+]]
+
+.column[
+# 
+  * Live version: https://byollin.shinyapps.io/PoliceReports/
+.img-fill[![](images/police-reports.png)]
+]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -549,6 +682,8 @@ background-size: cover
 .column[
 ]
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
 
 layout: false
@@ -560,9 +695,13 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
-  - Free
+  - Free, up to five applications
   - One-click deployment from RStudio
+  
+.img-fill[![](images/deploy.png)]
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -574,10 +713,14 @@ class: split-33 with-thick-border
 ]]
 
 .column[.content[
-  &lt;br&gt;&lt;br&gt;
-  - Requires a moderate amount of systems administration expereince (i.e., setting up, securing and maintaining web servers)
-  - Both an "open-source" and "pro" tier
+# 
+  * Requires a moderate amount of systems administration expereince (i.e., setting up, securing and maintaining web servers)
+  * Both an "open-source" and "pro" tier
+  
+.img-fill[![](images/shiny-server.png)]
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -590,9 +733,15 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
+  * Docker is a platform for creating isolated environments, or containers, that separate an application from the infrastructure on which it runs
   * Requires a moderate amount of systems administration expereince
   * As long as Docker is installed, a Docker container can run on a machine in a matter of seconds
+  * Azure and GCP (and likely AWS) have services that automatically build, deploy and scale web applications
+    + Azure Web Apps for Containers
+    + Google Kubernetes Engine
 ]]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
 ---
 
@@ -606,6 +755,8 @@ background-size: cover
 .column[
 ]
 
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
 ---
 
 layout: false
@@ -617,10 +768,24 @@ class: split-33 with-thick-border
 
 .column[
 # 
-  * Developed for RStudio's Shiny Competition
+  * Developed for RStudio's 2019 Shiny Competition
   * Won honorable mention
-  * Deployed on shinyapps.io: https://byollin.shinyapps.io/Isolines/
+  * Live version: https://byollin.shinyapps.io/Isolines/
+  
+.img-fill[![](images/isolines.png)]
 ]
+
+&lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
+
+---
+
+class: bg-main2 
+
+# Thank you!
+  * Find the source code for this presentation here: <span>&lt;i class="fab  fa-github faa-shake animated-hover "&gt;&lt;/i&gt;</span> [.yellow[github.com/byollin/ShinyLeaflet]](https://github.com/byollin/ShinyLeaflet)
+  * The slides can be accessed here: <span>&lt;i class="fab  fa-github faa-shake animated-hover "&gt;&lt;/i&gt;</span> [.yellow[byollin.github.io/ShinyLeaflet/]](https://byollin.github.io/ShinyLeaflet/)
+  * The source code for the Isolines application here: <span>&lt;i class="fab  fa-github faa-shake animated-hover "&gt;&lt;/i&gt;</span> [.yellow[github.com/byollin/Isolines]](https://github.com/byollin/Isolines)
+  * Please feel free to reach out or connect on LinkedIn!
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

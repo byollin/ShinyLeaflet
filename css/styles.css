@@ -30,9 +30,19 @@ html.remark-container, body.remark-container {
   background-size: contain;
 }
 
+.remark-slide-content h1 {
+    font-family: 'Boogaloo', cursive;
+    font-weight: 100;
+    font-size: 50px;
+}
+
 .bg-main1 {
   background-color: #b1d65c;
   background-image: url('../images/green-dust-and-scratches.png');
+}
+
+.bg-main2 {
+  background-color: #b1d65c;
 }
 
 .with-thick-border >.column:nth-of-type(n+2) {

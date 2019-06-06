@@ -1,0 +1,19 @@
+.outer {
+    position: fixed;
+    top: 45px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+hr {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.leaflet-left .leaflet-control {
+    max-height: 400px;
+    overflow-y: scroll;
+}

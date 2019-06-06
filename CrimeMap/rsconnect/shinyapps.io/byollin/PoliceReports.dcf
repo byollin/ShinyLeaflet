@@ -1,0 +1,12 @@
+name: PoliceReports
+title: PoliceReports
+username:
+account: byollin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 969189
+bundleId: 2136176
+url: https://byollin.shinyapps.io/PoliceReports/
+when: 1559847239.44189
+asMultiple: FALSE
+asStatic: FALSE

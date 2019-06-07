@@ -13,7 +13,7 @@ hr {
     margin-bottom: 6px;
 }
 
-.leaflet-left .leaflet-control {
+.legend {
     max-height: 400px;
     overflow-y: scroll;
 }

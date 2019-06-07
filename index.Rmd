@@ -198,7 +198,6 @@ class: split-33 with-thick-border
 ```{r, echo = TRUE, eval = FALSE}
 x = sf::st_transform(x, 4326)
 ```
-
 .center[![](images/mercator.png)]
 ]]
 
@@ -630,6 +629,54 @@ frameWidget(l, height = 300)
 
 ---
 
+layout: false
+class: split-33 with-thick-border
+
+.column.bg-main1[.content[
+  # Legends
+]]
+
+.column[
+# 
+  * To add a legend, use the `addLegend` function
+```{r, echo = TRUE, eval = FALSE}
+labels = sprintf("<strong>Drive Alone Rate</strong><br/>%.1f%%",
+                 polygons$DRIVE_ALON / polygons$TOTAL_POP * 100) %>% lapply(htmltools::HTML)
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+  addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+              color = 'grey', weight = 0.4, fillOpacity = 0.5,
+              highlightOptions = highlightOptions(weight = 2, color = 'black'),
+              label = labels) %>%
+  addLegend(data = polygons, pal = bin_pal, title = 'Drive Alone Rate',
+            values = ~(polygons$DRIVE_ALON / polygons$TOTAL_POP), position = 'bottomright')
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(leaflet, quietly = TRUE)
+library(widgetframe, quietly = TRUE)
+polygons = sf::st_read('data/commute.shp', quiet = TRUE) # commute mode from 2017 acs
+bin_pal = colorBin('YlGnBu', polygons$DRIVE_ALON / polygons$TOTAL_POP)
+labels = sprintf("<strong>Drive Alone Rate</strong><br/>%.1f%%",
+                 polygons$DRIVE_ALON / polygons$TOTAL_POP * 100) %>% lapply(htmltools::HTML)
+l = leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>% 
+      setView(lng = -122.330412, lat = 47.609056, zoom = 11) %>%  
+      addPolygons(data = polygons, fillColor = ~bin_pal(polygons$DRIVE_ALON / polygons$TOTAL_POP),
+                  color = 'grey', weight = 0.4, fillOpacity = 0.5,
+                  highlightOptions = highlightOptions(weight = 2, color = 'black'),
+                  label = labels) %>%
+      addLegend(data = polygons, pal = bin_pal, title = 'Drive Alone Rate',
+                values = ~(polygons$DRIVE_ALON / polygons$TOTAL_POP), position = 'bottomright')
+frameWidget(l, height = 300)
+```
+]
+
+<!-- --------------------------------------------------------------------------------------------------------------- -->
+
+---
+
 class: split-70 hide-slide-number
 background-image: url('images/leaves.jpg')
 background-size: cover
@@ -692,6 +739,17 @@ ui = navbarPage(title = 'Police Reports | Past 24 Hours', windowTitle = 'Police 
                 )
 )
 ```
+
+```{html, eval = FALSE}
+<nav class="navbar navbar-default navbar-static-top" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <span class="navbar-brand">Police Reports | Past 24 Hours</span>
+    </div>
+    ... [TRUNCATED] ...
+  </div>
+</nav>
+```
 ]
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
@@ -716,7 +774,7 @@ class: split-33 with-thick-border
 server = function(input, output) {
     popup_js = JS(read_file('popup.js'))
     output$map = renderLeaflet({
-        leaflet(options = leafletOptions(minZoom = 4, maxZoom = 18, zoomControl = FALSE)) %>%
+        leaflet() %>%
             addProviderTiles(providers$CartoDB.Positron) %>%
             setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
             addEsriFeatureLayer(map_service_url, markerIcons = icons,
@@ -725,6 +783,10 @@ server = function(input, output) {
             addControl(html = html_legend, position = 'bottomleft')
     })
 }
+```
+
+```{r, echo = TRUE, eval = FALSE}
+shinyApp(ui = ui, server = server)
 ```
 ]
 
@@ -757,6 +819,7 @@ class: split-33 with-thick-border
 .column[
 # 
   * Live version: https://byollin.shinyapps.io/PoliceReports/
+
 .img-fill[![](images/police-reports.png)]
 ]
 
@@ -827,10 +890,11 @@ class: split-33 with-thick-border
 # 
   * Docker is a platform for creating isolated environments, or containers, that separate an application from the infrastructure on which it runs
   * Requires a moderate amount of systems administration expereince
-  * As long as Docker is installed, a Docker container can run on a machine in a matter of seconds
   * Azure and GCP (and likely AWS) have services that automatically build, deploy and scale web applications
     + Azure Web Apps for Containers
     + Google Kubernetes Engine
+
+.center[![](images/azure.png)]
 ]]
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
@@ -878,3 +942,11 @@ class: bg-main2
   * The slides can be accessed here: `r anicon::faa("github", animate = 'shake', anitype = 'hover')` [.yellow[byollin.github.io/ShinyLeaflet/]](https://byollin.github.io/ShinyLeaflet/)
   * The source code for the Isolines application here: `r anicon::faa("github", animate = 'shake', anitype = 'hover')` [.yellow[github.com/byollin/Isolines]](https://github.com/byollin/Isolines)
   * Please feel free to reach out or connect on LinkedIn!
+  
+--
+
+<br><br>
+
+.content.center[
+  `r anicon::faa('question', animate = 'pulse', size = 10, color = 'white')`
+]

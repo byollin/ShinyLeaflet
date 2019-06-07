@@ -93,7 +93,7 @@ ui = navbarPage(title = 'Police Reports | Past 24 Hours', windowTitle = 'Police 
 server = function(input, output) {
     popup_js = JS(read_file('popup.js'))
     output$map = renderLeaflet({
-        leaflet(options = leafletOptions(minZoom = 4, maxZoom = 18, zoomControl = FALSE)) %>%
+        leaflet() %>%
             addProviderTiles(providers$CartoDB.Positron) %>%
             setView(lng = -122.330412, lat = 47.609056, zoom = 15) %>% 
             addEsriFeatureLayer(map_service_url, markerIcons = icons,

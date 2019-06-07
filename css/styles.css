@@ -86,3 +86,7 @@ ul {
 .remark-code {
   font-size: 14px;
 }
+
+.remark-slide-content .center > img {
+  width: 60%;
+}

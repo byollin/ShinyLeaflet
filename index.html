@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
   <head>
-    <title>Creating Interactive GIS Applications with Shiny and Leaflet</title>
+    <title>Creating Interactive GIS (Web) Applications with Shiny and Leaflet</title>
     <meta charset="utf-8" />
     <meta name="author" content="  Bethany Yollin" />
     <script src="libs/htmlwidgets-1.3/htmlwidgets.js"></script>
@@ -18,7 +18,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Creating Interactive GIS Applications with Shiny and Leaflet
+# Creating Interactive GIS (Web) Applications with Shiny and Leaflet
 ### <br><br>Bethany Yollin
 ### <br><br><br><br><br>Cascadia R Conference<br>June 8, 2019
 
@@ -65,9 +65,13 @@ tmp = tempfile()
 download.file(url, tmp)
 unzip(tmp, exdir = tempdir())
 # read spatial data using either readOGR or st_read
-x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts', quiet = TRUE)
+x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts')
 ```
 ]]
+
+???
+
+- TODO
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
@@ -82,10 +86,11 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
-  * A special flavor of JSON that also encodes coordinate information
+  * A special flavor of JSON that also encodes spatial information
   * Natively open-source and tailored to work on the web
   * Rather verbose, difficult to handle large datasets, generally works well for datasets less than 4MB
-  * Use `rgdal::readOGR` or `sf::st_read` to read from a geojson file
+    + In some cases, a TopoJSON file can be an efficient alternative to GeoJSON
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a `.geojson` or `.topojson` file
 
 ```json
 {
@@ -103,10 +108,14 @@ class: split-33 with-thick-border
 
 ```r
 url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
-# read spatial data using either readOGR or st_read
-x = sf::st_read(url, quiet = TRUE)
+x = sf::st_read(url)
 ```
 ]]
+
+???
+
+- JSON stands for Javascript Object Notation, which is an open-standard file format
+- TopoJSON files encode geographic topology. This means they store information about how features fit together. For example, if two adjacent polygons share a border, that border is only defined once and can be referenced by different features.
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
@@ -122,11 +131,19 @@ class: split-33 with-thick-border
 .column[.content[
 # 
   * Many federal, state, regional and municipal agencies host their GIS data as map services exposed via a RESTful API
+  * A client can submit an HTTP GET request and retrieve a JSON response
+
+```bash
+GET /arcgis/rest/services/SPD_EXT/911IncidentResponses/MapServer/0/query?\
+  where=mapcategory+%3D+%27Assault%27
+```
   * Map services can be included into any web map and removes the burden of hosting and updating GIS data
-  * Map services support point, polyline, polygon and raster features
-  * Services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
-  * Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
+  * Services can be removed or changed with no warning, so if you value stability over currency, consider using a static source
 ]]
+
+???
+
+- Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
 
@@ -158,6 +175,10 @@ class: split-33 with-thick-border
     + Multi-dimensional data often with a time component
     + Used extensively in the oceanic and atmospheric communities
 ]]
+
+???
+
+- Geodatabases are quite efficient in compressing data
 
 &lt;!-- BUILDING A LEAFLET MAP ---------------------------------------------------------------------------------------- --&gt;
 
@@ -193,6 +214,8 @@ class: split-33 with-thick-border
 ```r
 x = sf::st_transform(x, 4326)
 ```
+
+.center[![](images/mercator.png)]
 ]]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -215,8 +238,8 @@ library(leaflet)
 leaflet()
 ```
 
-<div id="htmlwidget-a2e19881c81b0764734e" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-a2e19881c81b0764734e">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-6.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-00c73fb181ad07e5acdd" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-00c73fb181ad07e5acdd">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-7.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -239,8 +262,8 @@ library(leaflet)
 leaflet()
 ```
 
-<div id="htmlwidget-f80a83d95b3ce0655c9a" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-f80a83d95b3ce0655c9a">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-8.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-2e6d93ecdf2fef760cb7" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2e6d93ecdf2fef760cb7">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-9.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 
  * Okay... so maybe it's not that simple
 ]]
@@ -267,8 +290,8 @@ leaflet() %&gt;% addTiles() %&gt;%
   setView(lng = -122.330412, lat = 47.609056, zoom = 15)
 ```
 
-<div id="htmlwidget-d2d8aed886aab1457f36" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-d2d8aed886aab1457f36">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-10.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a37d627ec1e81b4a8e8a" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a37d627ec1e81b4a8e8a">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-11.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -290,8 +313,8 @@ leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
     setView(lng = -122.330412, lat = 47.609056, zoom = 15)
 ```
 
-<div id="htmlwidget-2b91ea4b88f911406a31" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2b91ea4b88f911406a31">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-12.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-da06a5abca48d3962efa" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-da06a5abca48d3962efa">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-13.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 
 
 ```r
@@ -300,8 +323,8 @@ leaflet(options = leafletOptions(zoomControl = FALSE)) %&gt;%
     setView(lng = -122.330412, lat = 47.609056, zoom = 15)
 ```
 
-<div id="htmlwidget-8ae8cc1ae7c1c63608ee" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8ae8cc1ae7c1c63608ee">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-14.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4657e43a1629ed57aaf2" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4657e43a1629ed57aaf2">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-15.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -329,8 +352,8 @@ leaflet() %&gt;%
                    radius = 4, clusterOptions = markerClusterOptions())
 ```
 
-<div id="htmlwidget-387e5a449a2cf4cd9140" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-387e5a449a2cf4cd9140">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-16.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a2c0675997620ff379b8" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a2c0675997620ff379b8">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-17.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -361,8 +384,8 @@ leaflet() %&gt;%
   leaflet.extras::addHeatmap(data = points, blur = 20, max = 0.05, radius = 12)
 ```
 
-<div id="htmlwidget-ad35dc2fe272a6f2ac42" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ad35dc2fe272a6f2ac42">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-18.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b110bfc7382be68a8af2" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b110bfc7382be68a8af2">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-19.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -397,8 +420,8 @@ leaflet() %&gt;%
                    stroke = FALSE, fillColor = ~bin_pal(OBESITY_AdjPrev), fillOpacity = 0.6)
 ```
 
-<div id="htmlwidget-e4f6e3d051d8a9c52703" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e4f6e3d051d8a9c52703">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-20.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-4e165bf9b68e66caa54d" style="width:100%;height:200px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4e165bf9b68e66caa54d">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-21.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -434,8 +457,8 @@ leaflet() %&gt;%
   addPolylines(data = x, weight = ~my_breaks(AWDT_ROUND), color = 'orange', opacity = 1)
 ```
 
-<div id="htmlwidget-da45e0511c1c2c865fc5" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-da45e0511c1c2c865fc5">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-22.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-53272fc3f6c23e20ebf8" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-53272fc3f6c23e20ebf8">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-23.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 ???
@@ -469,8 +492,8 @@ leaflet() %&gt;%
               color = 'grey', weight = 0.4, fillOpacity = 0.5)
 ```
 
-<div id="htmlwidget-4d9123c8dc03147db287" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4d9123c8dc03147db287">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-24.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-1202da7ea022e4f8a5a1" style="width:100%;height:250px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1202da7ea022e4f8a5a1">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-25.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -497,8 +520,8 @@ leaflet() %&gt;%
               highlightOptions = highlightOptions(weight = 2, color = 'black'))
 ```
 
-<div id="htmlwidget-5294fc7e78e39bf67c55" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-5294fc7e78e39bf67c55">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-26.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-62c2676338221804e406" style="width:100%;height:350px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-62c2676338221804e406">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-27.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;
@@ -528,8 +551,8 @@ leaflet() %&gt;%
               label = labels)
 ```
 
-<div id="htmlwidget-cd0dacbcaa78a658cb06" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-cd0dacbcaa78a658cb06">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-28.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f661366457f7060043d8" style="width:100%;height:300px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f661366457f7060043d8">{"x":{"url":"index_files/figure-html//widgets/widget_unnamed-chunk-29.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script>
 ]
 
 &lt;!-- --------------------------------------------------------------------------------------------------------------- --&gt;

@@ -1,5 +1,5 @@
 ---
-title: "Creating Interactive GIS Applications with Shiny and Leaflet"
+title: "Creating Interactive GIS (Web) Applications with Shiny and Leaflet"
 subtitle: ""
 author: "<br><br>Bethany Yollin"
 date: "<br><br><br><br><br>Cascadia R Conference<br>June 8, 2019"
@@ -53,9 +53,13 @@ tmp = tempfile()
 download.file(url, tmp)
 unzip(tmp, exdir = tempdir())
 # read spatial data using either readOGR or st_read
-x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts', quiet = TRUE)
+x = sf::st_read(dsn = tempdir(), layer = '2016_Traffic_Flow_Counts')
 ```
 ]]
+
+???
+
+- TODO
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
@@ -70,10 +74,11 @@ class: split-33 with-thick-border
 
 .column[.content[
 # 
-  * A special flavor of JSON that also encodes coordinate information
+  * A special flavor of JSON that also encodes spatial information
   * Natively open-source and tailored to work on the web
   * Rather verbose, difficult to handle large datasets, generally works well for datasets less than 4MB
-  * Use `rgdal::readOGR` or `sf::st_read` to read from a geojson file
+    + In some cases, a TopoJSON file can be an efficient alternative to GeoJSON
+  * Use `rgdal::readOGR` or `sf::st_read` to read from a `.geojson` or `.topojson` file
 ```{json}
 {
   "type": "Feature",
@@ -89,10 +94,14 @@ class: split-33 with-thick-border
 
 ```{r, echo = TRUE, eval = FALSE}
 url = 'https://opendata.arcgis.com/datasets/170b764c52f34c9497720c0463f3b58b_9.geojson'
-# read spatial data using either readOGR or st_read
-x = sf::st_read(url, quiet = TRUE)
+x = sf::st_read(url)
 ```
 ]]
+
+???
+
+- JSON stands for Javascript Object Notation, which is an open-standard file format
+- TopoJSON files encode geographic topology. This means they store information about how features fit together. For example, if two adjacent polygons share a border, that border is only defined once and can be referenced by different features.
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
@@ -108,11 +117,18 @@ class: split-33 with-thick-border
 .column[.content[
 # 
   * Many federal, state, regional and municipal agencies host their GIS data as map services exposed via a RESTful API
+  * A client can submit an HTTP GET request and retrieve a JSON response
+```{bash, eval = FALSE}
+GET /arcgis/rest/services/SPD_EXT/911IncidentResponses/MapServer/0/query?\
+  where=mapcategory+%3D+%27Assault%27
+```
   * Map services can be included into any web map and removes the burden of hosting and updating GIS data
-  * Map services support point, polyline, polygon and raster features
-  * Services can be removed or changed with no warning, so if you value stability over currency, consider hosting layers internally
-  * Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
+  * Services can be removed or changed with no warning, so if you value stability over currency, consider using a static source
 ]]
+
+???
+
+- Responses are typically limited to 1000 features in a single request, add a filter to a request or limit the visible scale range to avoid running into this limitation and potentially misrepresenting data
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
@@ -144,6 +160,10 @@ class: split-33 with-thick-border
     + Multi-dimensional data often with a time component
     + Used extensively in the oceanic and atmospheric communities
 ]]
+
+???
+
+- Geodatabases are quite efficient in compressing data
 
 <!-- BUILDING A LEAFLET MAP ---------------------------------------------------------------------------------------- -->
 
@@ -178,6 +198,8 @@ class: split-33 with-thick-border
 ```{r, echo = TRUE, eval = FALSE}
 x = sf::st_transform(x, 4326)
 ```
+
+.center[![](images/mercator.png)]
 ]]
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
